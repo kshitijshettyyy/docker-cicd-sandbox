@@ -1,0 +1,88 @@
+name: Build & Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/go-cicd-app
+
+jobs:
+  # ── 1. Test ────────────────────────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Run tests
+        run: go test ./...
+
+  # ── 2. Build & push Docker image ──────────────────────────────────────────
+  build:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: meta
+        run: echo "tag=${{ env.IMAGE_NAME }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.tag }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  # ── 3. Deploy to EC2 via SSH ───────────────────────────────────────────────
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            IMAGE="${{ needs.build.outputs.image_tag }}"
+
+            echo "==> Pulling image: $IMAGE"
+            docker pull "$IMAGE"
+
+            echo "==> Stopping old container (if any)"
+            docker stop go-app 2>/dev/null || true
+            docker rm   go-app 2>/dev/null || true
+
+            echo "==> Starting new container"
+            docker run -d \
+              --name go-app \
+              --restart unless-stopped \
+              -p 80:8080 \
+              "$IMAGE"
+
+            echo "==> Pruning dangling images"
+            docker image prune -f
+
+            echo "==> Deploy complete — running image: $IMAGE"
