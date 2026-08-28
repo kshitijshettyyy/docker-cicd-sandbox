@@ -59,17 +59,18 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: IMAGE_TAG
           script: |
             set -e
 
-            IMAGE="${{ needs.build.outputs.image_tag }}"
-
-            echo "==> Pulling image: $IMAGE"
-            docker pull "$IMAGE"
+            echo "==> Pulling image: $IMAGE_TAG"
+            docker pull "$IMAGE_TAG"
 
             echo "==> Stopping old container (if any)"
             docker stop go-app 2>/dev/null || true
@@ -80,9 +81,9 @@ jobs:
               --name go-app \
               --restart unless-stopped \
               -p 80:8080 \
-              "$IMAGE"
+              "$IMAGE_TAG"
 
             echo "==> Pruning dangling images"
             docker image prune -f
 
-            echo "==> Deploy complete — running image: $IMAGE"
+            echo "==> Deploy complete — running image: $IMAGE_TAG"
