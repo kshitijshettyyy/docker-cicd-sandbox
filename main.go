@@ -32,6 +32,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
   <h1>Hello from Go + Docker CI/CD PoC</h1>
   <p><strong>Version:</strong> %s</p>
   <p><strong>Host:</strong> %s</p>
+	<p>Made by Kshitij</p>
   <p>Push to <code>main</code> → GitHub Actions builds &amp; redeploys automatically.</p>
 </body>
 </html>`, version, hostname)
