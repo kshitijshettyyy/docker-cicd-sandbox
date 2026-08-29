@@ -1,7 +1,18 @@
 # docker-cicd-sandbox
 
-A beginner-friendly PoC that wires together **Go → Docker → GitHub Actions → EC2**.  
+A beginner-friendly PoC that wires together **Go → Docker → GitHub Actions → EC2**.
 Every push to `main` automatically tests, builds, and redeploys the app — no manual steps.
+
+[![CI/CD Pipeline](https://github.com/kshitijshettyyy/docker-cicd-sandbox/actions/workflows/deploy.yml/badge.svg)](https://github.com/kshitijshettyyy/docker-cicd-sandbox/actions/workflows/deploy.yml)
+[![Docker Hub](https://img.shields.io/docker/pulls/kshitijkishoreshetty/go-cicd-app?label=Docker%20Pulls&logo=docker)](https://hub.docker.com/r/kshitijkishoreshetty/go-cicd-app)
+[![Docker Image Size](https://img.shields.io/docker/image-size/kshitijkishoreshetty/go-cicd-app/latest?label=Image%20Size&logo=docker)](https://hub.docker.com/r/kshitijkishoreshetty/go-cicd-app/tags)
+
+| | Link |
+|---|---|
+| 🌐 **Live app** | http://44.203.192.156 |
+| 🐳 **Docker Hub image** | https://hub.docker.com/r/kshitijkishoreshetty/go-cicd-app |
+| 🏷️ **All image tags (one per commit)** | https://hub.docker.com/r/kshitijkishoreshetty/go-cicd-app/tags |
+| ⚙️ **Pipeline runs** | https://github.com/kshitijshettyyy/docker-cicd-sandbox/actions |
 
 ---
 
